@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Day Trading Tool"
+version = "1.0.0"
+id = "artifacts/trading-tool"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25059
+
+[services.development]
+run = "pnpm --filter @workspace/trading-tool run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trading-tool", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/trading-tool/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25059"
+BASE_PATH = "/"
