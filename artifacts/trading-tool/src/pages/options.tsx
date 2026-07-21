@@ -1,28 +1,30 @@
 import { useState } from "react";
 import { useGetOptionChain, useGetQuote } from "@workspace/api-client-react";
-import { formatPrice, formatNumber, formatPercent } from "@/lib/utils";
+import { formatPrice, formatNumber } from "@/lib/utils";
 import { Search } from "lucide-react";
 
 export function Options() {
-  const [symbolInput, setSymbolInput] = useState("SPY");
-  const [symbol, setSymbol] = useState("SPY");
-  
+  // Read symbol from URL params, fall back to NVDA
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialSymbol = searchParams.get("symbol")?.toUpperCase() || "NVDA";
+
+  const [symbolInput, setSymbolInput] = useState(initialSymbol);
+  const [symbol, setSymbol] = useState(initialSymbol);
+
   const { data: quote } = useGetQuote(symbol, { query: { enabled: !!symbol } });
-  
-  // First query to get available dates (without expiry param)
+
+  // First query — get available expiry dates
   const { data: chainBase } = useGetOptionChain({ symbol }, { query: { enabled: !!symbol } });
-  
   const availableDates = chainBase?.expiryDates || [];
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  // Default to nearest expiry once loaded
   if (availableDates.length > 0 && !selectedDate) {
     setSelectedDate(availableDates[0]);
   }
 
-  // Second query to get chain for selected expiry
+  // Second query — get chain for selected expiry
   const { data: chain, isLoading } = useGetOptionChain(
-    { symbol, expiry: selectedDate || undefined }, 
+    { symbol, expiry: selectedDate || undefined },
     { query: { enabled: !!symbol && !!selectedDate } }
   );
 
@@ -37,7 +39,6 @@ export function Options() {
   const selectedExpiryData = chain?.options?.find(o => o.date === selectedDate);
   const underlyingPrice = quote?.price || chain?.underlyingPrice || 0;
 
-  // We need to merge calls and puts by strike
   const strikes = new Set<number>();
   selectedExpiryData?.calls.forEach(c => strikes.add(c.strike));
   selectedExpiryData?.puts.forEach(p => strikes.add(p.strike));
@@ -52,7 +53,7 @@ export function Options() {
             className="w-full bg-card border border-border h-9 pl-9 pr-3 text-sm focus:outline-none focus:border-primary font-mono uppercase"
             placeholder="Symbol..."
             value={symbolInput}
-            onChange={(e) => setSymbolInput(e.target.value)}
+            onChange={(e) => setSymbolInput(e.target.value.toUpperCase())}
           />
         </form>
 
@@ -76,7 +77,7 @@ export function Options() {
             </button>
           ))}
           {availableDates.length > 7 && (
-            <select 
+            <select
               className="bg-transparent text-muted-foreground outline-none px-2 cursor-pointer hover:bg-muted"
               value={selectedDate || ""}
               onChange={(e) => setSelectedDate(e.target.value)}
@@ -101,15 +102,12 @@ export function Options() {
           <table className="w-full text-xs font-mono">
             <thead className="bg-card border-b border-border sticky top-0 z-10 text-muted-foreground">
               <tr>
-                {/* Calls headers */}
                 <th className="font-normal px-2 py-2 text-right">Delta</th>
                 <th className="font-normal px-2 py-2 text-right">Vol</th>
                 <th className="font-normal px-2 py-2 text-right">OI</th>
                 <th className="font-normal px-2 py-2 text-right">Bid</th>
                 <th className="font-normal px-2 py-2 text-right border-r border-border">Ask</th>
-                {/* Strike */}
                 <th className="font-bold px-2 py-2 text-center w-24 bg-muted/30 text-primary">Strike</th>
-                {/* Puts headers */}
                 <th className="font-normal px-2 py-2 text-left border-l border-border">Bid</th>
                 <th className="font-normal px-2 py-2 text-left">Ask</th>
                 <th className="font-normal px-2 py-2 text-left">OI</th>
@@ -119,35 +117,24 @@ export function Options() {
             </thead>
             <tbody className="divide-y divide-border/50">
               {isLoading ? (
-                <tr>
-                  <td colSpan={11} className="py-12 text-center text-muted-foreground">Loading option chain...</td>
-                </tr>
+                <tr><td colSpan={11} className="py-12 text-center text-muted-foreground">Loading option chain...</td></tr>
               ) : !selectedExpiryData ? (
-                <tr>
-                  <td colSpan={11} className="py-12 text-center text-muted-foreground">No options data for selected date.</td>
-                </tr>
+                <tr><td colSpan={11} className="py-12 text-center text-muted-foreground">Select an expiry date above.</td></tr>
               ) : (
                 sortedStrikes.map(strike => {
                   const call = selectedExpiryData.calls.find(c => c.strike === strike);
                   const put = selectedExpiryData.puts.find(p => p.strike === strike);
-                  
-                  const isAtm = Math.abs(strike - underlyingPrice) < (strike * 0.01);
-                  
+                  const isAtm = Math.abs(strike - underlyingPrice) < (strike * 0.015);
                   return (
-                    <tr key={strike} className={`hover:bg-muted/30 ${isAtm ? 'bg-primary/5 border-y-primary/20' : ''}`}>
-                      {/* Calls */}
+                    <tr key={strike} className={`hover:bg-muted/30 ${isAtm ? 'bg-primary/5' : ''}`}>
                       <td className={`px-2 py-1 text-right ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{(call?.delta || 0).toFixed(2)}</td>
                       <td className={`px-2 py-1 text-right ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{formatNumber(call?.volume)}</td>
                       <td className={`px-2 py-1 text-right text-muted-foreground ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{formatNumber(call?.openInterest)}</td>
-                      <td className={`px-2 py-1 text-right text-success ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{call?.bid?.toFixed(2)}</td>
-                      <td className={`px-2 py-1 text-right text-success border-r border-border ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{call?.ask?.toFixed(2)}</td>
-                      
-                      {/* Strike */}
+                      <td className={`px-2 py-1 text-right text-success ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{call?.bid?.toFixed(2) ?? '—'}</td>
+                      <td className={`px-2 py-1 text-right text-success border-r border-border ${call?.inTheMoney ? 'bg-success/5' : ''}`}>{call?.ask?.toFixed(2) ?? '—'}</td>
                       <td className={`px-2 py-1 text-center font-bold w-24 bg-muted/30 ${isAtm ? 'text-primary border-x border-primary/20' : ''}`}>{strike.toFixed(2)}</td>
-                      
-                      {/* Puts */}
-                      <td className={`px-2 py-1 text-left text-destructive border-l border-border ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{put?.bid?.toFixed(2)}</td>
-                      <td className={`px-2 py-1 text-left text-destructive ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{put?.ask?.toFixed(2)}</td>
+                      <td className={`px-2 py-1 text-left text-destructive border-l border-border ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{put?.bid?.toFixed(2) ?? '—'}</td>
+                      <td className={`px-2 py-1 text-left text-destructive ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{put?.ask?.toFixed(2) ?? '—'}</td>
                       <td className={`px-2 py-1 text-left text-muted-foreground ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{formatNumber(put?.openInterest)}</td>
                       <td className={`px-2 py-1 text-left ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{formatNumber(put?.volume)}</td>
                       <td className={`px-2 py-1 text-left ${put?.inTheMoney ? 'bg-destructive/5' : ''}`}>{(put?.delta || 0).toFixed(2)}</td>

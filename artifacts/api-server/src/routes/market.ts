@@ -70,10 +70,17 @@ router.get("/market/history", async (req, res): Promise<void> => {
   };
 
   const yInterval = intervalMap[q.interval ?? "1d"] ?? "1d";
-  const yRange = rangeMap[q.range ?? "3mo"] ?? "3mo";
+
+  // v4 chart() requires period1 (date) instead of range
+  const rangeDaysMap: Record<string, number> = {
+    "1d": 1, "5d": 5, "1mo": 30, "3mo": 90,
+    "6mo": 180, "1y": 365, "2y": 730, "5y": 1825,
+  };
+  const days = rangeDaysMap[q.range ?? "3mo"] ?? 90;
+  const period1 = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
   try {
-    const chart = await yahooFinance.chart(symbol, { interval: yInterval, range: yRange }) as any;
+    const chart = await yahooFinance.chart(symbol, { interval: yInterval, period1 }) as any;
 
     const candles = ((chart.quotes ?? []) as any[])
       .filter((c: any) => c.open != null && c.close != null)

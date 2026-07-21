@@ -1,0 +1,1 @@
+- [Yahoo Finance v4 API](yahoo-finance-v4.md) — v4 requires `new YahooFinance()` (class default export); `chart()` uses `period1` date string, not `range`; instance lives in `artifacts/api-server/src/lib/yahoo.ts`
