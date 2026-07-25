@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Day Trading Tool"
+title = "NVDA Sentinel"
 version = "1.0.0"
 id = "artifacts/trading-tool"
 router = "path"

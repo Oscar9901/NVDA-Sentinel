@@ -788,10 +788,13 @@ components:
 
     Alert:
       type: object
-      required: [id, symbol, condition, targetPrice, isActive, createdAt]
+      required: [id, symbol, purpose, condition, targetPrice, isActive, createdAt]
       properties:
         id:           { type: integer }
         symbol:       { type: string }
+        purpose:
+          type: string
+          enum: [entry, take_profit, stop_loss]
         condition:
           type: string
           enum: [above, below]
@@ -803,9 +806,12 @@ components:
 
     AlertInput:
       type: object
-      required: [symbol, condition, targetPrice]
+      required: [symbol, purpose, condition, targetPrice]
       properties:
         symbol:      { type: string }
+        purpose:
+          type: string
+          enum: [entry, take_profit, stop_loss]
         condition:
           type: string
           enum: [above, below]
@@ -815,12 +821,15 @@ components:
     AlertUpdate:
       type: object
       properties:
+        purpose:
+          type: string
+          enum: [entry, take_profit, stop_loss]
         targetPrice: { type: number }
         condition:
           type: string
           enum: [above, below]
-        note:        { type: string }
-        isActive:    { type: boolean }
+        note: { type: string }
+        isActive: { type: boolean }
 
     # ── Scanner ───────────────────────────────────────────────────────────────
 

@@ -41,7 +41,7 @@ router.get("/scanner", async (req, res): Promise<void> => {
       ? PRESET_SCREENER_IDS[preset]
       : "most_actives";
 
-    const result = await yahooFinance.screener({ scrIds: scrId, count: 100 }) as any;
+    const result = await yahooFinance.screener({ scrIds: scrId as any, count: 100 }) as any;
 
     type ScanItem = { symbol: string; name: string; price: number; change: number; changePercent: number; volume: number; marketCap: number | null; pe: number | null };
 

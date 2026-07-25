@@ -11,9 +11,14 @@ export function TopBar() {
   const debouncedQuery = useDebounce(query, 300);
 
   const { data: searchResults } = useSearchSymbols(
-    { q: debouncedQuery },
-    { query: { enabled: debouncedQuery.length > 0 } }
-  );
+  { q: debouncedQuery },
+  {
+    query: {
+      queryKey: ["/api/market/search", { q: debouncedQuery }],
+      enabled: debouncedQuery.length > 0,
+    },
+  }
+);
 
   const [time, setTime] = useState(new Date());
   useEffect(() => {

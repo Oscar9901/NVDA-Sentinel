@@ -12,8 +12,12 @@ import { Briefcase, Plus, X, ChevronDown } from "lucide-react";
 
 function PositionRow({ position, onClose }: { position: Position; onClose: (id: number) => void }) {
   const { data: quote } = useGetQuote(position.symbol, {
-    query: { enabled: !!position.symbol, refetchInterval: 10000 },
-  });
+  query: {
+    queryKey: ["/api/market/quote", position.symbol],
+    enabled: !!position.symbol,
+    refetchInterval: 10000,
+  },
+});
 
   const currentPrice = quote?.price ?? position.avgCost;
   const marketValue = currentPrice * position.quantity;

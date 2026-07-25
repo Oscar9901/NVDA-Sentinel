@@ -270,6 +270,15 @@ export interface TradeStats {
   avgHoldingPeriodHours: number;
 }
 
+export type AlertPurpose = typeof AlertPurpose[keyof typeof AlertPurpose];
+
+
+export const AlertPurpose = {
+  entry: 'entry',
+  take_profit: 'take_profit',
+  stop_loss: 'stop_loss',
+} as const;
+
 export type AlertCondition = typeof AlertCondition[keyof typeof AlertCondition];
 
 
@@ -281,6 +290,7 @@ export const AlertCondition = {
 export interface Alert {
   id: number;
   symbol: string;
+  purpose: AlertPurpose;
   condition: AlertCondition;
   targetPrice: number;
   /** @nullable */
@@ -290,6 +300,15 @@ export interface Alert {
   /** @nullable */
   triggeredAt?: string | null;
 }
+
+export type AlertInputPurpose = typeof AlertInputPurpose[keyof typeof AlertInputPurpose];
+
+
+export const AlertInputPurpose = {
+  entry: 'entry',
+  take_profit: 'take_profit',
+  stop_loss: 'stop_loss',
+} as const;
 
 export type AlertInputCondition = typeof AlertInputCondition[keyof typeof AlertInputCondition];
 
@@ -301,10 +320,20 @@ export const AlertInputCondition = {
 
 export interface AlertInput {
   symbol: string;
+  purpose: AlertInputPurpose;
   condition: AlertInputCondition;
   targetPrice: number;
   note?: string;
 }
+
+export type AlertUpdatePurpose = typeof AlertUpdatePurpose[keyof typeof AlertUpdatePurpose];
+
+
+export const AlertUpdatePurpose = {
+  entry: 'entry',
+  take_profit: 'take_profit',
+  stop_loss: 'stop_loss',
+} as const;
 
 export type AlertUpdateCondition = typeof AlertUpdateCondition[keyof typeof AlertUpdateCondition];
 
@@ -315,6 +344,7 @@ export const AlertUpdateCondition = {
 } as const;
 
 export interface AlertUpdate {
+  purpose?: AlertUpdatePurpose;
   targetPrice?: number;
   condition?: AlertUpdateCondition;
   note?: string;

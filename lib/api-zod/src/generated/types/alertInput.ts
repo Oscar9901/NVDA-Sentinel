@@ -6,9 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AlertInputCondition } from './alertInputCondition';
+import type { AlertInputPurpose } from './alertInputPurpose';
 
 export interface AlertInput {
   symbol: string;
+  purpose: AlertInputPurpose;
   condition: AlertInputCondition;
   targetPrice: number;
   note?: string;

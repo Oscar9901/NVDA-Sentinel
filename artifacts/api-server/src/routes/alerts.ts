@@ -13,6 +13,7 @@ const router: IRouter = Router();
 const formatAlert = (a: typeof alertsTable.$inferSelect) => ({
   id: a.id,
   symbol: a.symbol,
+  purpose: a.purpose,
   condition: a.condition,
   targetPrice: parseFloat(a.targetPrice),
   note: a.note ?? null,
@@ -40,6 +41,7 @@ router.post("/alerts", async (req, res): Promise<void> => {
     .insert(alertsTable)
     .values({
       symbol: d.symbol.toUpperCase(),
+      purpose: d.purpose as "entry" | "take_profit" | "stop_loss",
       condition: d.condition as "above" | "below",
       targetPrice: String(d.targetPrice),
       note: d.note ?? null,

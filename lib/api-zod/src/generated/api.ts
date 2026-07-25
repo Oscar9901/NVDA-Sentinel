@@ -439,6 +439,7 @@ export const GetTradeStatsResponse = zod.object({
 export const GetAlertsResponseItem = zod.object({
   "id": zod.number(),
   "symbol": zod.string(),
+  "purpose": zod.enum(['entry', 'take_profit', 'stop_loss']),
   "condition": zod.enum(['above', 'below']),
   "targetPrice": zod.number(),
   "note": zod.string().nullish(),
@@ -454,6 +455,7 @@ export const GetAlertsResponse = zod.array(GetAlertsResponseItem)
  */
 export const CreateAlertBody = zod.object({
   "symbol": zod.string(),
+  "purpose": zod.enum(['entry', 'take_profit', 'stop_loss']),
   "condition": zod.enum(['above', 'below']),
   "targetPrice": zod.number(),
   "note": zod.string().optional()
@@ -462,6 +464,7 @@ export const CreateAlertBody = zod.object({
 export const CreateAlertResponse = zod.object({
   "id": zod.number(),
   "symbol": zod.string(),
+  "purpose": zod.enum(['entry', 'take_profit', 'stop_loss']),
   "condition": zod.enum(['above', 'below']),
   "targetPrice": zod.number(),
   "note": zod.string().nullish(),
@@ -479,6 +482,7 @@ export const UpdateAlertParams = zod.object({
 })
 
 export const UpdateAlertBody = zod.object({
+  "purpose": zod.enum(['entry', 'take_profit', 'stop_loss']).optional(),
   "targetPrice": zod.number().optional(),
   "condition": zod.enum(['above', 'below']).optional(),
   "note": zod.string().optional(),
@@ -488,6 +492,7 @@ export const UpdateAlertBody = zod.object({
 export const UpdateAlertResponse = zod.object({
   "id": zod.number(),
   "symbol": zod.string(),
+  "purpose": zod.enum(['entry', 'take_profit', 'stop_loss']),
   "condition": zod.enum(['above', 'below']),
   "targetPrice": zod.number(),
   "note": zod.string().nullish(),

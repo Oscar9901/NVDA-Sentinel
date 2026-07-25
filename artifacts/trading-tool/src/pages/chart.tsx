@@ -12,11 +12,23 @@ export function Chart() {
   const [interval, setIntervalVal] = useState<GetHistoryInterval>("1d");
   const [range, setRange] = useState<GetHistoryRange>("1mo");
 
-  const { data: quote } = useGetQuote(symbol, { query: { enabled: !!symbol, refetchInterval: 10000 } });
-  const { data: history, isLoading } = useGetHistory(
-    { symbol, interval, range }, 
-    { query: { enabled: !!symbol } }
-  );
+  const { data: quote } = useGetQuote(symbol, {
+  query: {
+    queryKey: ["/api/market/quote", symbol],
+    enabled: !!symbol,
+    refetchInterval: 10000,
+  },
+});
+
+const { data: history, isLoading } = useGetHistory(
+  { symbol, interval, range },
+  {
+    query: {
+      queryKey: ["/api/market/history", { symbol, interval, range }],
+      enabled: !!symbol,
+    },
+  }
+);
 
   const chartData = useMemo(() => {
     if (!history?.candles) return [];

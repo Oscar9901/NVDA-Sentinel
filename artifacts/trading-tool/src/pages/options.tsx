@@ -11,10 +11,23 @@ export function Options() {
   const [symbolInput, setSymbolInput] = useState(initialSymbol);
   const [symbol, setSymbol] = useState(initialSymbol);
 
-  const { data: quote } = useGetQuote(symbol, { query: { enabled: !!symbol } });
+  const { data: quote } = useGetQuote(symbol, {
+  query: {
+    queryKey: ["/api/market/quote", symbol],
+    enabled: !!symbol,
+  },
+});
 
   // First query — get available expiry dates
-  const { data: chainBase } = useGetOptionChain({ symbol }, { query: { enabled: !!symbol } });
+  const { data: chainBase } = useGetOptionChain(
+  { symbol },
+  {
+    query: {
+      queryKey: ["/api/market/options", { symbol }],
+      enabled: !!symbol,
+    },
+  }
+);
   const availableDates = chainBase?.expiryDates || [];
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -24,9 +37,17 @@ export function Options() {
 
   // Second query — get chain for selected expiry
   const { data: chain, isLoading } = useGetOptionChain(
-    { symbol, expiry: selectedDate || undefined },
-    { query: { enabled: !!symbol && !!selectedDate } }
-  );
+  { symbol, expiry: selectedDate || undefined },
+  {
+    query: {
+      queryKey: [
+        "/api/market/options",
+        { symbol, expiry: selectedDate || undefined },
+      ],
+      enabled: !!symbol && !!selectedDate,
+    },
+  }
+);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

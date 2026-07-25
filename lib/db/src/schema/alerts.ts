@@ -3,10 +3,15 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const alertConditionEnum = pgEnum("alert_condition", ["above", "below"]);
-
+export const alertPurposeEnum = pgEnum("alert_purpose", [
+  "entry",
+  "take_profit",
+  "stop_loss",
+]);
 export const alertsTable = pgTable("alerts", {
   id: serial("id").primaryKey(),
   symbol: text("symbol").notNull(),
+  purpose: alertPurposeEnum("purpose").notNull().default("entry"),
   condition: alertConditionEnum("condition").notNull(),
   targetPrice: numeric("target_price", { precision: 18, scale: 8 }).notNull(),
   note: text("note"),

@@ -6,7 +6,11 @@ import { Link } from "wouter";
 
 export function Scanner() {
   const [params, setParams] = useState<ScanStocksParams>({ preset: "gainers" });
-  const { data: results, isLoading, isFetching } = useScanStocks(params, { query: { keepPreviousData: true } });
+  const { data: results, isLoading, isFetching } = useScanStocks(params, {
+  query: {
+    queryKey: ["/api/scanner", params],
+  },
+});
 
   const presets = [
     { id: "gainers", label: "Top Gainers" },

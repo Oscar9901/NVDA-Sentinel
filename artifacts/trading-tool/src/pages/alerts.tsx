@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { useGetAlerts, useDeleteAlert, useCreateAlert, AlertCondition } from "@workspace/api-client-react";
+import {
+  useGetAlerts,
+  useDeleteAlert,
+  useCreateAlert,
+  AlertCondition,
+  AlertPurpose,
+} from "@workspace/api-client-react";
 import { formatPrice } from "@/lib/utils";
 import { Bell, Trash2, Plus, Target, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -11,22 +17,35 @@ export function Alerts() {
   const { toast } = useToast();
 
   const [symbol, setSymbol] = useState("");
+  const [purpose, setPurpose] = useState<AlertPurpose>("entry");
   const [condition, setCondition] = useState<AlertCondition>("above");
   const [price, setPrice] = useState("");
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!symbol || !price) return;
-    
-    createMutation.mutate(
-      { data: { symbol: symbol.toUpperCase(), condition, targetPrice: Number(price), note: "" } },
-      { 
+   
+      createMutation.mutate(
+      {
+        data: {
+          symbol: symbol.toUpperCase(),
+          purpose,
+          condition,
+          targetPrice: Number(price),
+          note: "",
+        },
+      },
+      {
         onSuccess: () => {
           setSymbol("");
+          setPurpose("entry");
           setPrice("");
           refetch();
-          toast({ title: "Alert Created", description: `Alert set for ${symbol.toUpperCase()}` });
-        } 
+          toast({
+            title: "Alert Created",
+            description: `Alert set for ${symbol.toUpperCase()}`,
+          });
+        },
       }
     );
   };
@@ -57,6 +76,20 @@ export function Alerts() {
             className="bg-background border border-border px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:border-primary"
             required
           />
+        </div>
+        <div className="flex flex-col gap-2 w-40 shrink-0">
+          <label className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Purpose
+          </label>
+          <select
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value as AlertPurpose)}
+            className="bg-background border border-border px-3 py-2 text-sm font-mono focus:outline-none focus:border-primary appearance-none rounded-none cursor-pointer"
+          >
+            <option value="entry">Entry</option>
+            <option value="take_profit">Take Profit</option>
+            <option value="stop_loss">Stop Loss</option>
+          </select>
         </div>
         <div className="flex flex-col gap-2 w-32 shrink-0">
           <label className="text-[10px] text-muted-foreground uppercase tracking-wider">Condition</label>

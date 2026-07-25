@@ -2,9 +2,58 @@ import { useGetDashboard } from "@workspace/api-client-react";
 import { formatPrice, formatPercent, getColorClass, formatVolume } from "@/lib/utils";
 import { ArrowUpRight, ArrowDownRight, Activity, Bell } from "lucide-react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+
+type NvdaSignal = {
+  symbol: string;
+  signal: "entry" | "watch" | "avoid";
+  direction: "call" | "put" | "neutral";
+  confidence: number;
+  tradeGrade: "A+" | "A" | "B" | "C" | "NO_TRADE";
+  sentinelScore: number;
+  bullishScore: number;
+  bearishScore: number;
+  currentPrice: number;
+  entryLow: number;
+  entryHigh: number;
+  stopLoss: number;
+  takeProfit: number;
+  indicators: {
+    ema9: number;
+    ema20: number;
+    rsi14: number;
+    vwap: number;
+    volumeRatio: number;
+    support: number;
+    resistance: number;
+  };
+  reasons: string[];
+  warnings: string[];
+  updatedAt: string;
+};
 
 export function Dashboard() {
   const { data: dashboard, isLoading, error } = useGetDashboard();
+
+
+  const {
+    data: nvdaSignal,
+    isLoading: signalLoading,
+    error: signalError,
+  } = useQuery<NvdaSignal>({
+    queryKey: ["nvda-signal"],
+    queryFn: async () => {
+      const response = await fetch("/api/signals/nvda");
+
+      if (!response.ok) {
+        throw new Error("Failed to load NVDA signal");
+      }
+
+      return response.json();
+    },
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading) {
     return <div className="h-full flex items-center justify-center font-mono text-muted-foreground">Loading terminal data...</div>;
@@ -56,7 +105,159 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+            <div className="bg-card border border-border">
+        <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/30">
+          <h2 className="text-sm font-bold uppercase tracking-wider">
+            NVDA Signal Center
+          </h2>
 
+          {nvdaSignal && (
+            <span className="text-[10px] text-muted-foreground font-mono">
+              Updated {new Date(nvdaSignal.updatedAt).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+
+        {signalLoading ? (
+          <div className="p-6 text-sm text-muted-foreground font-mono">
+            Analyzing NVDA...
+          </div>
+        ) : signalError || !nvdaSignal ? (
+          <div className="p-6 text-sm text-destructive font-mono">
+            Unable to load NVDA signal.
+          </div>
+        ) : (
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                     Direction
+                   </div>
+
+                   <div
+                     className={`text-3xl font-bold uppercase font-mono ${
+                       nvdaSignal.direction === "call"
+                         ? "text-success"
+                         : nvdaSignal.direction === "put"
+                           ? "text-destructive"
+                           : "text-muted-foreground"
+                      }`}
+                    >
+                      {nvdaSignal.direction === "call"
+                        ? "CALL"
+                        : nvdaSignal.direction === "put"
+                          ? "PUT"
+                          : "NEUTRAL"}
+                    </div>
+
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider mt-2">
+                      Signal
+                    </div>
+
+                    <div className="text-lg font-bold font-mono uppercase">
+                      {nvdaSignal.signal}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Confidence
+                    </div>
+                    <div className="text-2xl font-bold font-mono">
+                      {nvdaSignal.confidence}%
+                    </div>
+                  </div>
+
+                 <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Sentinel Score
+                    </div>
+                    <div className="text-2xl font-bold font-mono">
+                      {nvdaSignal.sentinelScore}/100
+                    </div>
+                  </div>
+
+              <div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Current Price
+                </div>
+                <div className="text-xl font-bold font-mono">
+                  {formatPrice(nvdaSignal.currentPrice)}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
+              <div className="border border-border p-3">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Suggested Entry
+                </div>
+                <div className="font-mono font-bold">
+                  {formatPrice(nvdaSignal.entryLow)} –{" "}
+                  {formatPrice(nvdaSignal.entryHigh)}
+                </div>
+              </div>
+
+              <div className="border border-border p-3">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Stop Loss
+                </div>
+                <div className="font-mono font-bold text-destructive">
+                  {formatPrice(nvdaSignal.stopLoss)}
+                </div>
+              </div>
+
+              <div className="border border-border p-3">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  Take Profit
+                </div>
+                <div className="font-mono font-bold text-success">
+                  {formatPrice(nvdaSignal.takeProfit)}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2">
+                  Confirmations
+                </div>
+
+                {nvdaSignal.reasons.length === 0 ? (
+                  <div className="text-sm text-muted-foreground font-mono">
+                    No bullish confirmations.
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {nvdaSignal.reasons.map((reason) => (
+                      <div key={reason} className="text-sm text-success font-mono">
+                        ✓ {reason}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider mb-2">
+                  Warnings
+                </div>
+
+                <div className="space-y-1">
+                  {nvdaSignal.warnings.map((warning) => (
+                    <div
+                      key={warning}
+                      className="text-sm text-destructive font-mono"
+                    >
+                      ⚠ {warning}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-card border border-border">

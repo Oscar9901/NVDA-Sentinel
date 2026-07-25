@@ -1,6 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-
+import { startAlertMonitor } from "./lib/alert-monitor";
+import { startNvdaSignalMonitor } from "./lib/nvda-signal-monitor";
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
@@ -22,4 +23,11 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  
+
+  startAlertMonitor();
+  startNvdaSignalMonitor(); 
 });
+
+
+  

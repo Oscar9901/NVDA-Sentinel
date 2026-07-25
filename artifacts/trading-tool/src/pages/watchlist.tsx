@@ -7,7 +7,13 @@ import { useDebounce } from "@/lib/hooks/use-debounce";
 
 function WatchlistRow({ item, onRemove }: { item: { id: number; symbol: string; name: string }, onRemove: (id: number) => void }) {
   const [, setLocation] = useLocation();
-  const { data: quote } = useGetQuote(item.symbol, { query: { enabled: !!item.symbol, refetchInterval: 5000 } });
+  const { data: quote } = useGetQuote(item.symbol, {
+  query: {
+    queryKey: ["/api/market/quote", item.symbol],
+    enabled: !!item.symbol,
+    refetchInterval: 5000,
+  },
+});
 
   return (
     <tr 
@@ -54,7 +60,15 @@ export function Watchlist() {
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const { data: searchResults } = useSearchSymbols({ q: debouncedSearch }, { query: { enabled: debouncedSearch.length > 0 } });
+  const { data: searchResults } = useSearchSymbols(
+  { q: debouncedSearch },
+  {
+    query: {
+      queryKey: ["/api/market/search", { q: debouncedSearch }],
+      enabled: debouncedSearch.length > 0,
+    },
+  }
+);
 
   const handleAdd = (symbol: string, name: string) => {
     addMutation.mutate(

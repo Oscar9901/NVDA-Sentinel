@@ -6,10 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AlertCondition } from './alertCondition';
+import type { AlertPurpose } from './alertPurpose';
 
 export interface Alert {
   id: number;
   symbol: string;
+  purpose: AlertPurpose;
   condition: AlertCondition;
   targetPrice: number;
   /** @nullable */
